@@ -6,7 +6,7 @@
 Slides du cours: [slides](1-ModelesTransportMobilite/AnalyseSpatiale-DeSIGeo_2022_Seance1-ModelesTransportMobilite.pdf) 
 
 TP NetLogo modele de flux pietons: 
- - Telechargement du logiciel NetLogo [](https://ccl.northwestern.edu/netlogo/6.1.1/)
- - depot git du modele [PedestrianFlows](https://github.com/JusteRaimbault/PedestrianFlows); archive zip du modele []() 
+ - Telechargement du logiciel NetLogo [Site du CCL](https://ccl.northwestern.edu/netlogo/6.1.1/)
+ - depot git du modele [PedestrianFlows](https://github.com/JusteRaimbault/PedestrianFlows); archive zip du modele [zip](1-ModelesTransportMobilite/PedestrianFlows-model.zip) 
 
 
