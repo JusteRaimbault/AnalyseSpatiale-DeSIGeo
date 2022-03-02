@@ -339,16 +339,54 @@ mf_map(x = deps, var = "coiffeur", type = "choro")
 # -> Determinants of US fuel prices at the county level
 #
 
+library(sf)
+library(dplyr)
+library(readr)
 library(GWmodel)
 
 # 3.1) Charger les données: data/energyprice
+countysocioeco <- st_read(dsn='data/energyprice/',layer = 'bea009p020')
+counties <- st_read(dsn='data/energyprice',layer = 'county_us_metro')
+
+countydata = read_delim('data/energyprice/county_daily_data.csv',delim = ";",col_names = T)
+
+states <- st_read('data/energyprice',layer = 'us_metro')
+taxes<- read_delim('data/energyprice/taxstate.csv',delim=";")
+states = left_join(states,taxes,by=c("STUSPS"="state"))
+
+sdata = data.frame(countydata[countydata$type=="Regular",] %>%
+                     group_by(countyid) %>%
+                     summarise(price=mean(meanprice)))
+counties=left_join(counties,sdata,by=c("GEOID"="countyid"))
+
+# carte des prix moyens
+mf_map(x = counties, var = "price", type = "choro")
+
+joineddata = left_join(counties,as_tibble(countysocioeco)[,c("BEA_FIPS","B13_2008","A34_2008","B34_2008","POP_2008","JOB_2008")],by=c("GEOID"="BEA_FIPS"))
+joineddata = joineddata[!duplicated(joineddata),]
+joineddata[is.na(joineddata)]=0
+alldata=joineddata[,c(5,6,10:15)]
+names(alldata)<-c("GEOID","name","price","income","jobs","wage","population","percapjobs","geometry")
 
 
 # 3.2) Tester des modèles GWR à bandwidth fixe
 
+gwbasic <- gwr.basic(price~income+jobs+wage+population+percapjobs,
+                     data=as(alldata, "Spatial"), bw=10000,kernel="bisquare",
+                     adaptive=F)
+print(gwbasic)
+
+# recuperer les coefficients
+coefs = gwbasic$SDF@data
 
 # 3.3) Optimiser la bandwidth
 
+bwfullaic = bw.gwr(price~income+jobs+wage+population+percapjobs,data=as(alldata, "Spatial"),
+                   approach="AIC", kernel="bisquare",adaptive=T)
+
+gwopt <- gwr.basic(price~income+jobs+wage+population+percapjobs,
+                     data=as(alldata, "Spatial"), bw=bwfullaic,kernel="bisquare",
+                     adaptive=T)
 
 
 # 3.4) Cartographier les coefficients
