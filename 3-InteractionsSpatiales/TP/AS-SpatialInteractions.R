@@ -1,4 +1,4 @@
-setwd('ComplexSystems/Teaching/2022-AnalyseSpatiale/AnalyseSpatiale-DeSIGeo/3-InteractionsSpatiales/TP/')
+setwd('~/ComplexSystems/Teaching/2022-AnalyseSpatiale/AnalyseSpatiale-DeSIGeo/3-InteractionsSpatiales/TP/')
 
 #####
 # TP : Interaction spatiales
@@ -12,8 +12,12 @@ setwd('ComplexSystems/Teaching/2022-AnalyseSpatiale/AnalyseSpatiale-DeSIGeo/3-In
 #   Caracs des liens: origine, destination, poids, turnover a l'origine, turnover a destination, 
 #      pays d'origine, pays de destination, distance geographique, similarite entre structure industrielle
 
+library(readr)
+library(dplyr)
+
 
 # 1.1) Charger les donnees: data/firmsnetwork/{cities.csv,links.csv}
+fuas = read_csv('data/firmsnetwork/cities.csv')
 
 
 
