@@ -257,7 +257,7 @@ deps=left_join(deps,as_tibble(aggrfacs[,c("CODE_DEPT","numfacs")]),by=c("CODE_DE
 
 weightMatrix<-function(decay,layer){
   d = st_distance(st_centroid(layer))
-  w = exp(-d/decay)
+  w = exp(-units::drop_units(d)/decay)
   diag(w)<-0
   return(w)
 }
@@ -266,13 +266,19 @@ spAutocorr<-function(x,w,m){
   n=length(x)
   cx = x - mean(x)
   cxvec=matrix(cx,nrow=n,ncol=1)
-  normalization = (w%*%matrix(rep(1,n),nrow=n,ncol=1))*(m%*%(cxvec*cxvec))
-  return(((matrix(data = rep(cx,n),ncol = n,nrow = n,byrow = FALSE)*w)%*%cxvec)/normalization)
+  normalization = n/(sum(w)*sum(cxvec*cxvec))
+  #ci = cxvec%*%matrix(data=rep(1,n),nrow=1)
+  #cj = t(ci)
+  #sum(w*ci*t(ci))*normalization
+  return(n*mean(((matrix(data = rep(cx,n),ncol = n,nrow = n,byrow = FALSE)*w)%*%cxvec)/normalization))
 }
 
+n = nrow(deps)
 m = matrix(rep(1,n*n),nrow=n,ncol=n);diag(m)<-0
+decay = 100000
 w=weightMatrix(decay,deps)
 
+spAutocorr(deps$numcoiffeur,w,m)
 
 # Moran avec le package spdep, fonction moran.test
 
