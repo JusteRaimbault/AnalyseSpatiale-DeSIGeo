@@ -343,6 +343,7 @@ library(sf)
 library(dplyr)
 library(readr)
 library(GWmodel)
+library(mapsf)
 
 # 3.1) Charger les données: data/energyprice
 countysocioeco <- st_read(dsn='data/energyprice/',layer = 'bea009p020')
@@ -371,28 +372,38 @@ names(alldata)<-c("GEOID","name","price","income","jobs","wage","population","pe
 
 # 3.2) Tester des modèles GWR à bandwidth fixe
 
+summary(lm(data=as.data.frame(alldata),price~income+jobs+wage+population+percapjobs))
+
 gwbasic <- gwr.basic(price~income+jobs+wage+population+percapjobs,
-                     data=as(alldata, "Spatial"), bw=10000,kernel="bisquare",
+                     data=as(alldata, "Spatial"), bw=10,kernel="bisquare",
                      adaptive=F)
 print(gwbasic)
 
 # recuperer les coefficients
 coefs = gwbasic$SDF@data
 
+
 # 3.3) Optimiser la bandwidth
 
-bwfullaic = bw.gwr(price~income+jobs+wage+population+percapjobs,data=as(alldata, "Spatial"),
+bwfullaic = bw.gwr(price~income+jobs+wage+population+percapjobs,
+                   data=as(alldata, "Spatial"),
                    approach="AIC", kernel="bisquare",adaptive=T)
+
+bwfullaicfixed = bw.gwr(price~income+jobs+wage+population+percapjobs,
+                   data=as(alldata, "Spatial"),
+                   approach="AIC", kernel="bisquare",adaptive=F)
 
 gwopt <- gwr.basic(price~income+jobs+wage+population+percapjobs,
                      data=as(alldata, "Spatial"), bw=bwfullaic,kernel="bisquare",
                      adaptive=T)
-
+print(gwopt)
 
 # 3.4) Cartographier les coefficients
 # Test: nouveau package mapsf
 # https://riatelab.github.io/mapsf/
 
+alldata$localR2=gwopt$SDF@data$Local_R2
+mf_map(x = alldata, var = "localR2", type = "choro")
 
 
 
