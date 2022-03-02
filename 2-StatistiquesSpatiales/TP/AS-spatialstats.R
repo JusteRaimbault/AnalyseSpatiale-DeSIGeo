@@ -248,7 +248,42 @@ deps=left_join(deps,as_tibble(aggrfacs[,c("CODE_DEPT","numfacs")]),by=c("CODE_DE
 
 # 2.6) Calculer des indices de concentration
 
+# Construction des comptages pour l'ensemble des activites par departement
+activityfiles = c(archi="Architecte.gpkg",immo="Courtier_immobilier.gpkg",hotel="Hôtels.gpkg",
+                  auberge="Auberge.gpkg",ecole="École_élémentaire.gpkg",lycee="Lycée.gpkg",avocats="Cabinet_avocats.gpkg",
+                  maternelle="École_maternelle.gpkg",motel="Motel.gpkg",chambrehote="Chambredhôte.gpkg",
+                  primaire="Ecole_primaire.gpkg",notaires="Notaires.gpkg",
+ college = "Collège.gpkg",enssup="Enseignement_Supérieur.gpkg",coiffeur="Salon_de_coiffure.gpkg",
+ comptable= "Comptable.gpkg",geometre="Géomètre.gpkg")
 
+for(activitename in names(activityfiles)){
+  show(activitename)
+  activite = st_transform(st_read(paste0("data/osmdata/",activityfiles[[activitename]])),"EPSG:2154")
+  aggractivite = st_join(activite, deps) %>% group_by(CODE_DEPT) %>% summarise(num = n())
+  aggractivite[[activitename]] = aggractivite$num
+  deps=left_join(deps,as_tibble(aggractivite)[,c("CODE_DEPT",activitename)],by=c("CODE_DEPT"="CODE_DEPT"))
+}
+
+specialisation <- function(departements,activites,activitespec){
+  counts = as_tibble(departements)[,activites]
+  counts[is.na(counts)]=0
+  localshare = counts[,activitespec] / rowSums(counts)
+  globalShare = sum(counts[,activitespec])/sum(counts)
+  return(localshare/globalShare)
+}
+
+# specialisation en ens sup parmi education
+deps$specfac = specialisation(deps,c("ecole","lycee","maternelle","primaire","college","enssup"),"enssup")[[1]]
+ 
+
+# prof liberales
+deps$specavocat = specialisation(deps,c("archi","immo","avocats","notaires","comptable","geometre"),"avocats")[[1]]
+
+# cartographie
+library(mapsf)
+mf_map(x = deps, var = "specfac", type = "choro")
+
+mf_map(x = deps, var = "specavocat", type = "choro")
 
 
 # 2.7) Calculer l'autocorrélation spatiale
@@ -286,12 +321,15 @@ library(spdep)
 depsnb = poly2nb(deps)
 w = nb2listw(depsnb)
 
-moran.test(deps$numcoiffeur,w)
+moran.test(deps$coiffeur,w,na.action = na.omit)
 
-geary.test(deps$numcoiffeur,w)
+geary.test(deps$coiffeur,w)
 
-localmoran(deps$numcoiffeur,w)
+loccoiff = localmoran(deps$coiffeur,w)
 
+deps$loccoiff = loccoiff[,1]
+mf_map(x = deps, var = "loccoiff", type = "choro")
+mf_map(x = deps, var = "coiffeur", type = "choro")
 
 
 #########
