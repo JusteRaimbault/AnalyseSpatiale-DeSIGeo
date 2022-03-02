@@ -231,6 +231,9 @@ summary(lm(data=data.frame(coif=aggrcoiffeurs$numcoiffeur,pop=aggrcoiffeurs$popu
            formula = coif~pop
 ))
 
+# joindre les resultats au sf departements
+deps=left_join(deps,as_tibble(aggrcoiffeurs[,c("CODE_DEPT","numcoiffeur")]),by=c("CODE_DEPT"="CODE_DEPT"))
+
 
 aggrfacs = st_join(facs, deps) %>% group_by(CODE_DEPT) %>%
   summarise(numfacs = n(), population = PTOT[1])
@@ -239,6 +242,9 @@ summary(lm(data=data.frame(logfacs=log(aggrfacs$numfacs),logpop=log(aggrfacs$pop
            formula = logfacs~logpop
 ))
 
+deps=left_join(deps,as_tibble(aggrfacs[,c("CODE_DEPT","numfacs")]),by=c("CODE_DEPT"="CODE_DEPT"))
+
+
 
 # 2.6) Calculer des indices de concentration
 
@@ -246,11 +252,39 @@ summary(lm(data=data.frame(logfacs=log(aggrfacs$numfacs),logpop=log(aggrfacs$pop
 
 
 # 2.7) Calculer l'autocorrélation spatiale
-# Pour Moran: package spdep, fonction moran.test
+
+# a la main (produits de matrices)
+
+weightMatrix<-function(decay,layer){
+  d = st_distance(st_centroid(layer))
+  w = exp(-d/decay)
+  diag(w)<-0
+  return(w)
+}
+
+spAutocorr<-function(x,w,m){
+  n=length(x)
+  cx = x - mean(x)
+  cxvec=matrix(cx,nrow=n,ncol=1)
+  normalization = (w%*%matrix(rep(1,n),nrow=n,ncol=1))*(m%*%(cxvec*cxvec))
+  return(((matrix(data = rep(cx,n),ncol = n,nrow = n,byrow = FALSE)*w)%*%cxvec)/normalization)
+}
+
+m = matrix(rep(1,n*n),nrow=n,ncol=n);diag(m)<-0
+w=weightMatrix(decay,deps)
+
+
+# Moran avec le package spdep, fonction moran.test
 
 library(spdep)
-moran.test(...)
+depsnb = poly2nb(deps)
+w = nb2listw(depsnb)
 
+moran.test(deps$numcoiffeur,w)
+
+geary.test(deps$numcoiffeur,w)
+
+localmoran(deps$numcoiffeur,w)
 
 
 
@@ -269,9 +303,13 @@ library(GWmodel)
 # 3.2) Tester des modèles GWR à bandwidth fixe
 
 
-# 3.3) Optimmiser la bandwidth
+# 3.3) Optimiser la bandwidth
 
 
+
+# 3.4) Cartographier les coefficients
+# Test: nouveau package mapsf
+# https://riatelab.github.io/mapsf/
 
 
 
