@@ -11,6 +11,7 @@ setwd('~/ComplexSystems/Teaching/2022-AnalyseSpatiale/AnalyseSpatiale-DeSIGeo/3-
 #   Caracs des aires urbaines: turnover des entreprises, parts de differents secteurs d'activite, pays, population, gdp
 #   Caracs des liens: origine, destination, poids, turnover a l'origine, turnover a destination, 
 #      pays d'origine, pays de destination, distance geographique, similarite entre structure industrielle
+# secteurs d'activite: https://ec.europa.eu/competition/mergers/cases/index/nace_all.html
 
 library(readr)
 library(dplyr)
