@@ -243,7 +243,7 @@ plot(g,vertex.size=1,vertex.label.cex=0.3)
 
 # Alternatives:
 # package ggnetwork ~ compatible avec igraph
-
+#  https://cran.r-project.org/web/packages/ggnetwork/vignettes/ggnetwork.html
 
 
 # 1.3) distribution des degres
