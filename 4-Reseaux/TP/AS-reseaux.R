@@ -214,7 +214,31 @@ plot(subgraph_largest,vertex.size=2,vertex.label=NA,
 
 #####
 ## Partie 2
+# Analyse de reseau social
+# Data : co-occurence des personnages de A Song of Ice and Fire
+#  https://github.com/mathbeveridge/asoiaf
 
+library(readr)
+library(igraph)
+
+# 1.1) charger les donnees
+# Data available under a CC-BY-NC-SA Licence at https://github.com/mathbeveridge/asoiaf
+nodes <- read_csv("https://raw.githubusercontent.com/mathbeveridge/asoiaf/master/data/asoiaf-all-nodes.csv")
+edges <- read_csv("https://raw.githubusercontent.com/mathbeveridge/asoiaf/master/data/asoiaf-all-edges.csv")
+
+# 1.2) ploter le graph avec un layout adapte
+
+
+# 1.3) distribution des degres
+
+
+# 1.4) centralites
+
+
+# 1.5) detection de communautes
+
+
+# 1.6) plotter avec multiples infos: communaute, centralite, degre
 
 
 
