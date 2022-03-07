@@ -226,20 +226,91 @@ library(igraph)
 nodes <- read_csv("https://raw.githubusercontent.com/mathbeveridge/asoiaf/master/data/asoiaf-all-nodes.csv")
 edges <- read_csv("https://raw.githubusercontent.com/mathbeveridge/asoiaf/master/data/asoiaf-all-edges.csv")
 
+g = graph_from_data_frame(edges,vertices = nodes,directed = F)
+
 # 1.2) ploter le graph avec un layout adapte
+
+positions=layout_with_fr(g)
+V(g)$x = positions[,1];V(g)$y = positions[,2]
+
+#plot(g,vertex.size=1,vertex.label=NA)
+plot(g,vertex.size=1,vertex.label.cex=0.3)
+
+# pour bien visualiser: gephi, par exemple apres export en gml
+# https://gephi.org/
+# 
+#igraph::write_graph(g,file="",format="gml")
+
+# Alternatives:
+# package ggnetwork ~ compatible avec igraph
+
 
 
 # 1.3) distribution des degres
 
+deg = degree(g)
+deg_pondere = strength(g)
+
+# histogramme
+hist(deg,breaks = 50)
+
+hist(deg_pondere,breaks = 50)
+hist(log(deg_pondere),breaks = 50)
+
+summary(lm(data=data.frame(log_wdeg=sort(strength(g),decreasing = T),
+                   log_ranklog = log(1:vcount(g))
+                   ),
+   log_wdeg ~ log_ranklog
+))
+
+# code facultatif: ajuster des power law avec plus de parametres, ou 
+# des distributions log-normale
+library(poweRlaw)
+wdeg_estimator = poweRlaw::conpl$new(deg_pondere)
+est = poweRlaw::estimate_xmin(wdeg_estimator,xmax = max(deg_pondere))
+wdeg_estimator$setXmin(est)
+
+wdeg_estimator_lnorm = poweRlaw::conlnorm$new(deg_pondere)
+est_lnorm = poweRlaw::estimate_xmin(wdeg_estimator_lnorm,xmax = max(deg_pondere))
+wdeg_estimator_lnorm$setXmin(est_lnorm)
+
+plot(wdeg_estimator);lines(wdeg_estimator, col=2, lwd=2);lines(wdeg_estimator_lnorm, col=3, lwd=2)
+
+
+
 
 # 1.4) centralites
+
+clos_centralities = closeness(g)
+hist(clos_centralities,breaks = 50)
+
+clos_betwenness = betweenness(g)
+hist(log(clos_betwenness),breaks = 50)
+
+V(g)$name[clos_betwenness==max(clos_betwenness)]
+V(g)$name[clos_betwenness>quantile(clos_betwenness,c(0.97))]
+
+V(g)$name[strength(g)==max(strength(g))]
+V(g)$name[strength(g)>quantile(strength(g),c(0.97))]
+
 
 
 # 1.5) detection de communautes
 
+coms = cluster_louvain(g)
+modularity(coms)
+membership(coms)
+
 
 # 1.6) plotter avec multiples infos: communaute, centralite, degre
 
+plot(g,
+     vertex.size = log(strength(g))/2,
+     vertex.frame.color = NA,
+     vertex.label=NA,
+     #vertex.label.cex = clos_betwenness/50000,
+     vertex.color = membership(coms)
+     )
 
 
 
