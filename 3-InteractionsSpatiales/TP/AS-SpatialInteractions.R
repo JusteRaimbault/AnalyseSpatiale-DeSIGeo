@@ -47,10 +47,22 @@ cities$specK = unlist(specialisation(cities,activites,"sectorK"))
 
 
 sfcities =  st_as_sf(cities,coords = c("X","Y"))
+st_crs(sfcities)<- st_crs(4326)
+
+# overlay countries
+st_join(sfcities,pays)
 
 mf_map(sfcities)
+#mf_map(st_filter(st_transform(pays, st_crs(sfcities)), sfcities))
+#mf_map(pays,xlim=c(-10,30),ylim=c(35,62))
+#mf_map(pays[pays$CONTINENT=="Europe"&pays$TYPE%in%c("Country","Sovereign country"),])
+#extent = st_as_sf(data.frame(x=c(-10,-10,30,30),y=c(35,62,35,62)), coords = c("x","y"))
+#st_crs(extent)<-4326
+#mf_map(extent,col = 'lightgrey')
+#mf_map(pays[st_filter(pays,st_bbox(extent)),])
+#ggplot(pays)+xlim(c(-10,30))+ylim(c(35,62))+geom_sf()
+
 mf_map(sfcities, var = c("pop", "specA"), type = "prop_choro")
-#mf_map(pays)
 
 mf_map(sfcities)
 mf_map(sfcities, var = c("pop", "specK"), type = "prop_choro")
